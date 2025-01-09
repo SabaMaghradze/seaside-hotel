@@ -64,12 +64,14 @@ public class RoomServiceImpl implements RoomService {
         Optional<Room> theRoom = roomRepository.findById(roomId);
 
         if (theRoom.isEmpty()) {
-            throw new ResourceNotFoundException("Failed to get the room");
+            throw new ResourceNotFoundException("Failed to fetch the room with ID " + roomId);
         }
 
         Blob photoBlob = theRoom.get().getPhoto();
         if (photoBlob != null) {
-            return photoBlob.getBytes(1, (int) photoBlob.length());
+            return photoBlob.getBytes(1, (int) photoBlob.length()); // Retrieves all the bytes
+            // from the Blob(Binary Large Object), starting from position 1 and continuing for the
+            // entire length of the Blob.
         }
         return null;
     }
