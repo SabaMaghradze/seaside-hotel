@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.sql.rowset.serial.SerialBlob;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Blob;
@@ -116,6 +117,26 @@ public class RoomController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
 
+    }
+
+    @CrossOrigin(origins = "http://localhost:5173")
+    @PatchMapping("/update/{roomId}")
+    public ResponseEntity<RoomResponse> updateRoom(
+            @PathVariable Long roomId,
+            @RequestParam(required = false) String roomType,
+            @RequestParam(required = false) BigDecimal roomPrice,
+            @RequestParam(required = false) MultipartFile pic) throws SQLException, IOException {
+
+        byte[] photoBytes = pic != null && !pic.isEmpty() ? pic.getBytes() : roomService.getRoomPhotoByRoomId(roomId);
+        Blob photoBlob = photoBytes != null && photoBytes.length > 0 ? new SerialBlob(photoBytes) : null;
+
+        Room theRoom = roomService.updateRoom(roomId, roomType, roomPrice, photoBytes);
+
+        theRoom.setPhoto(photoBlob);
+
+        RoomResponse response = getRoomResponse(theRoom);
+
+        return ResponseEntity.ok(response);
     }
 }
 

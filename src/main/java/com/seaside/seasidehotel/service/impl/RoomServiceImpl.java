@@ -1,4 +1,5 @@
 package com.seaside.seasidehotel.service.impl;
+import com.seaside.seasidehotel.exception.InternalServerException;
 import com.seaside.seasidehotel.exception.ResourceNotFoundException;
 import com.seaside.seasidehotel.model.Room;
 import com.seaside.seasidehotel.repository.RoomRepository;
@@ -56,10 +57,12 @@ public class RoomServiceImpl implements RoomService {
 
     @Override
     public byte[] getRoomPhotoByRoomId(Long roomId) throws SQLException {
+
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new ResourceNotFoundException("Failed to find the room with id " + roomId));
 
         Blob photoBlob = room.getPhoto();
+
         if (photoBlob == null) {
             return new byte[0];
         }
@@ -71,6 +74,24 @@ public class RoomServiceImpl implements RoomService {
         Room room = roomRepository.findById(roomId).orElseThrow(() -> new ResourceNotFoundException("Failed to find the room with id " + roomId));
 
         roomRepository.delete(room);
+    }
+
+    @Override
+    public Room updateRoom(Long id, String roomType, BigDecimal roomPrice, byte[] pic) {
+
+        Room room = roomRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Room not found"));
+
+        if (roomType != null) room.setRoomType(roomType);
+        if (roomPrice != null) room.setRoomPrice(roomPrice);
+        if (pic != null && pic.length > 0) {
+            try {
+                room.setPhoto(new SerialBlob(pic));
+            } catch (SQLException e) {
+                throw new InternalServerException("Error updating room");
+            }
+        }
+
+        return roomRepository.save(room);
     }
 }
 
